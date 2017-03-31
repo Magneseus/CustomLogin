@@ -87,4 +87,6 @@ pam_sm_chauthtok(pam_handle_t *pamh, int flags,
   return (PAM_SUCCESS);
 }
 
+#ifdef PAM_MODULE_ENTRY
 PAM_MODULE_ENTRY("custom_login");
+#endif
