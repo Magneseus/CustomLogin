@@ -49,8 +49,24 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
                     int argc, const char *argv[])
 {
 
+  const char *username;
+  int r;
+  struct passwd *passwd;
+
+
+  /* identify user */
+	r = pam_get_user(pamh, &username, NULL);
+	if (r != PAM_SUCCESS)
+		return PAM_AUTHINFO_UNAVAIL;
+
+  /* password */
+	passwd = getpwnam(username);
+	if (!passwd)
+		return PAM_AUTHINFO_UNAVAIL;
+
   // mouse and keyboard devices
   const char *mouseDevice = "/dev/input/mice"; /* gets input from every mouse */
+
   // it will be something like /dev/input/event*
   char keyboardDevice[64] = "/dev/input/event";
   set_keyboard_device_number(keyboardDevice); // find and set keyboard event number
