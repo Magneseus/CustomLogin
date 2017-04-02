@@ -120,8 +120,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 
   printf("Mouse click login:\n");
 
+  int passwordLen = 3;
   int password[3] = {1, 1, 2}; //left, left, right
-  int sequence[100];
+  int input[100];
 
   while(cnt < 100) {
 
@@ -149,15 +150,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
         break;
       }
 
-      if(mouseBytes > 0
-         && (data[0] & 0x1 || data[0] & 0x2 || data[0] & 0x4)
-         )
+      int buttonPressed = (data[0] & 0x1 || data[0] & 0x2 || data[0] & 0x4);
+
+      if(mouseBytes > 0 && buttonPressed)
         {
           left = data[0] & 0x1;
           right = data[0] & 0x2;
           middle = data[0] & 0x4;
 
-          sequence[cnt] = data[0] & 7; // add key event to sequence
+          input[cnt] = data[0] & 7; // add key event to sequence
 
           x = data[1];
           y = data[2];
@@ -209,12 +210,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
     read(keyboardfd, &ev, sizeof(ev));
   }
 
-
-  // check mouse sequence
-  if(cnt == 3){
-    for(int i = 0; i < 3; i++){
-      printf("%d %d\n", password[i], sequence[i]);
-      if(password[i] != sequence[i]){
+  // check mouse input
+  if(cnt == passwordLen){
+    for(int i = 0; i < passwordLen; i++){
+      printf("%d %d\n", password[i], input[i]);
+      if(password[i] != input[i]){
         printf("WRONG\n");
         return (PAM_AUTH_ERR);
       }
