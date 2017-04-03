@@ -37,14 +37,11 @@ static const char* CMD_GET_KEYBOARD_DEVICE_EVENT_NUMBER =
 // append result to the keyboard string
 void set_keyboard_device_number(char* keyboard){
   FILE *pipe = popen(CMD_GET_KEYBOARD_DEVICE_EVENT_NUMBER, "r");
-  char buffer[32];
-  char result[256];
-  while (!feof(pipe))
-    if (fgets(buffer, 4, pipe) != NULL)
-      strcat(result, buffer);
+  char buffer[16];
+  if (fgets(buffer, 4, pipe) != NULL)
+    strcat(keyboard, buffer);
+  printf("%s\n", keyboard);
   pclose(pipe);
-
-  strcat(keyboard, result);
 }
 
 PAM_EXTERN int

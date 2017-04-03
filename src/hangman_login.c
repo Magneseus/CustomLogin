@@ -40,7 +40,6 @@ static const char* CMD_GET_KEYBOARD_DEVICE_EVENT_NUMBER =
 void set_keyboard_device_number(char* keyboard){
   FILE *pipe = popen(CMD_GET_KEYBOARD_DEVICE_EVENT_NUMBER, "r");
   char buffer[16];
-  /* while (!feof(pipe)) */
   if (fgets(buffer, 4, pipe) != NULL)
     strcat(keyboard, buffer);
   printf("%s\n", keyboard);
