@@ -1,9 +1,8 @@
 /*
-  keyboard time login
+  hangman login
 
-  Keypresses require a delay between input, the password defines how
-  many keypresses there should be and how long one has to wait
-  between them.
+  there are a list of words. one will be chosen at random. the user
+  will have a certain number of guess
 */
 
 #include <errno.h>
@@ -13,7 +12,9 @@
 #include <pwd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <security/pam_modules.h>
@@ -33,6 +34,7 @@ static const char* CMD_GET_KEYBOARD_DEVICE_EVENT_NUMBER =
   "grep -Eo '[0-9]+' |"
   "tr -d '\n'";
 
+
 // call command
 // append result to the keyboard string
 void set_keyboard_device_number(char* keyboard){
@@ -51,6 +53,7 @@ PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags,
                     int argc, const char *argv[])
 {
+  srand(time(NULL));
 
   const char *username;
   int r;
@@ -66,6 +69,50 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	passwd = getpwnam(username);
 	if (!passwd)
 		return PAM_AUTHINFO_UNAVAIL;
+
+  int numWords = 5;
+  char* words[5] = {"apple", "banana", "grape", "lemon", "orange"};
+  char* word = words[rand() % numWords];
+  char guessed[20];
+  const int MAX_WRONG = 6;
+  int wrong = 0;
+  int i;
+
+  for(i = 0; i <strlen(word);i++)
+    guessed[i] = '_';
+
+  guessed[strlen(word)] = '\0';
+
+  // A to Z
+  int charKeycodes[26] =
+    {
+      30,
+      48,
+      46,
+      32,
+      18,
+      33,
+      34,
+      35,
+      23,
+      36,
+      37,
+      38,
+      50,
+      49,
+      24,
+      25,
+      16,
+      19,
+      31,
+      20,
+      22,
+      47,
+      17,
+      45,
+      21,
+      44
+    };
 
   // mouse and keyboard devices
   const char *mouseDevice = "/dev/input/mice"; /* gets input from every mouse */
@@ -120,13 +167,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
   fds[1].fd = keyboardfd;
   fds[1].events = POLLIN;
 
-  printf("Keyboard time login:\n");
+  printf("Hangman login:\n");
+
+  printf("Word:\n");
+  for(i = 0; i < strlen(guessed); i++){
+    printf("%c ", guessed[i]);
+  }
+  printf("\n\n");
 
   const int MAX_INPUTS = 100;
-  int passwordLen = 4;
-  int delay = 2000000; // in microseconds, so 2 seconds
-  int password[4] = {delay, delay, delay, delay};
-  struct timeval input[MAX_INPUTS]; //
   int keyPresses = 0;
 
   while(keyPresses < MAX_INPUTS) {
@@ -168,7 +217,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
       }
     }
 
-    // we want to check if ENTER has been pressed
     if(fds[1].revents & POLLIN){ // keyboard data to read
       // Read Keyboard
       keyboardBytes = read(keyboardfd, &ev, sizeof(ev));
@@ -188,20 +236,49 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
       }
 
       if(keyboardBytes > 0){
-        if (ev.type == EV_KEY && ev.value >= 0 && ev.value <= 2)
-          printf("%s 0x%04x (%d)\n", evval[ev.value], (int)ev.code, (int)ev.code);
-
-        // Break loop when ENTER key pressed
-        if(ev.type == EV_KEY &&
-           ev.value == 1 && // PRESSED
-           (int)ev.code == 28 // ENTER code
-           )
-          break;
+        /* if (ev.type == EV_KEY && ev.value >= 0 && ev.value <= 2) */
+        /*   printf("%s 0x%04x (%d)\n", evval[ev.value], (int)ev.code, (int)ev.code); */
 
         if(ev.type == EV_KEY && ev.value == 1){
-          input[keyPresses] = ev.time;
-          printf("i:%d, sec:%d, usec:%d\n", keyPresses, ev.time.tv_sec, ev.time.tv_usec);
           keyPresses++;
+          int isChar = 0;
+          char c;
+
+          // check to see if it is character
+          for(i = 0; i < 26; i++){
+            if(ev.code == charKeycodes[i]){
+              isChar = 1;
+              c = (char) i + 'a';
+            }
+          }
+
+          if(isChar == 1){ // is a character
+            // search for c in the word
+            int cnt = 0;
+            for(i = 0; i < strlen(word); i++){
+              if(c == word[i]){
+                cnt++;
+                guessed[i] = c;
+              }
+            }
+
+            printf("\nWord:\n");
+            for(i = 0; i < strlen(guessed); i++){
+              printf("%c ", guessed[i]);
+            }
+            printf("\n");
+
+            if(cnt == 0){
+              wrong++;
+              printf("NO!\nGuesses left: %d\n\n", MAX_WRONG - wrong);
+            } else if(strcmp(word, guessed) == 0){
+              break;
+            }
+
+            if(wrong == MAX_WRONG){
+              break;
+            }
+          }
         }
       }
     }
@@ -215,22 +292,12 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
     read(keyboardfd, &ev, sizeof(ev));
   }
 
-  // compare to password
-  if(keyPresses == passwordLen+1){
-    for(int i = 1; i < passwordLen; i++){
-      int timeDiff = (input[i].tv_sec*1000000 + input[i].tv_usec) - (input[i-1].tv_sec*1000000 + input[i-1].tv_usec);
-      printf("%d %d\n", password[i], timeDiff);
-      if(password[i] > timeDiff){ // didn't wait long enough
-        printf("WRONG\n");
-        return (PAM_AUTH_ERR);
-      }
-    }
-    printf("RIGHT\n");
+  if(strcmp(word, guessed) == 0){
+    printf("Right\n");
     return (PAM_SUCCESS);
   }
 
   printf("WRONG\n");
-
   return (PAM_AUTH_ERR);
 }
 
