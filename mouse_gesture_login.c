@@ -1,5 +1,8 @@
 /*
-  mouse click login
+  mouse gesture login
+
+  Simple mouse gestures based on change in relative position between
+  mouse clicks.
 */
 
 #include <errno.h>
@@ -59,7 +62,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	if (r != PAM_SUCCESS)
 		return PAM_AUTHINFO_UNAVAIL;
 
-  /* password */
+  /* check to see if they have a password */
 	passwd = getpwnam(username);
 	if (!passwd)
 		return PAM_AUTHINFO_UNAVAIL;
@@ -77,7 +80,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
   unsigned char data[3]; // mouse device outputs 3 byte per read
   int left=0, middle=0, right = 0;
   signed char x, y;
-  int cnt = 0;
 
   //keyboard info
   int keyboardfd;
@@ -118,13 +120,16 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
   fds[1].fd = keyboardfd;
   fds[1].events = POLLIN;
 
-  printf("Mouse click login:\n");
+  printf("Mouse gesture login:\n");
 
-  int passwordLen = 3;
-  int password[3] = {1, 1, 2}; //left, left, right
-  int input[100];
+  const int MAX_INPUTS = 100;
+  int passwordLen = 4;
+  int password[4] = {1, 2, 4, 8}; //up, left, down, right
+  int input[MAX_INPUTS]; // bitmask of change in position
+  int mouseChange[MAX_INPUTS][2];
+  int mousePresses = -1; // count mouse presses, first mouse press will be the reference point
 
-  while(cnt < 100) {
+  while(mousePresses < MAX_INPUTS) {
 
     // fd array, size of array, poll time
     poll(fds, 2, 10); // 10 millisecond poll time
@@ -150,20 +155,51 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
         break;
       }
 
-      int buttonPressed = (data[0] & 0x1 || data[0] & 0x2 || data[0] & 0x4);
 
-      if(mouseBytes > 0 && buttonPressed)
-        {
-          left = data[0] & 0x1;
-          right = data[0] & 0x2;
-          middle = data[0] & 0x4;
+      int buttonPressed = (data[0] & 0x1 || data[0] & 0x2 || data[0] & 0x4); // checks if a mouse button has been pressed.
 
-          input[cnt] = data[0] & 7; // add key event to sequence
+      // collect change in relative position
+      if(mousePresses >= 0){
+        x = data[1];
+        y = data[2];
 
-          x = data[1];
-          y = data[2];
-          printf("x=%d, y=%d, left=%d, middle=%d, right=%d, cnt=%d\n", x, y, left, middle, right, cnt);
-          cnt++;
+        mouseChange[mousePresses][0] += x;
+        mouseChange[mousePresses][1] += y;
+      }
+
+      if(mouseBytes > 0 && buttonPressed) {
+
+        left = data[0] & 0x1;
+        right = (data[0] & 0x2) > 0;
+        middle = (data[0] & 0x4) > 0;
+
+        /* printf("x=%d, y=%d, left=%d, middle=%d, right=%d, cnt=%d\n", x, y, left, middle, right, cnt); */
+
+        int threshold = 50;
+        input[mousePresses] = 0;
+
+        // left click means only check x change
+        if(left){
+          if(mouseChange[mousePresses][0] >= threshold){ // moved right 10 or more
+            input[mousePresses] |= 8;
+          } else if(mouseChange[mousePresses][0] <= -threshold){
+            input[mousePresses] |= 2;
+          }
+        } else if(right){ // right click means only check y axis change
+          if(mouseChange[mousePresses][1] >= threshold){ // moved up 10 or more
+            input[mousePresses] |= 1;
+          } else if(mouseChange[mousePresses][1] <= -threshold){
+            input[mousePresses] |= 4;
+          }
+        }
+
+        if(mousePresses>= 0){
+          printf("i=%d, x=%d, y=%d, mouse:%d\n", mousePresses, mouseChange[mousePresses][0], mouseChange[mousePresses][1], data[0] & 3);
+        }
+
+        mousePresses++;
+        if(mousePresses < MAX_INPUTS)
+          mouseChange[mousePresses][0] = mouseChange[mousePresses][1] = 0; // initialize relative change
         }
     }
 
@@ -210,10 +246,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
     read(keyboardfd, &ev, sizeof(ev));
   }
 
-  // check mouse input
-  if(cnt == passwordLen){
+  // compare to password
+  if(mousePresses == passwordLen){
     for(int i = 0; i < passwordLen; i++){
-      if(password[i] != input[i]){
+      printf("%d %d\n", password[i], input[i]);
+      if(password[i] != input[i]){ // bit not set
         printf("WRONG\n");
         return (PAM_AUTH_ERR);
       }
@@ -286,9 +323,3 @@ pam_sm_chauthtok(pam_handle_t *pamh, int flags,
   (void)argv;
   return (PAM_SUCCESS);
 }
-
-/*
-  #ifdef PAM_MODULE_ENTRY
-  PAM_MODULE_ENTRY("custom_login");
-  #endif
-*/
