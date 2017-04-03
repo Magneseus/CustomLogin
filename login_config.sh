@@ -18,6 +18,7 @@ func_help()
 	echo "-i, --install	[module name]	install a module to /lib/security"
 	echo "-s, --set 	[module name]	set a module as the defauly login type"
 	echo "-r, --reset			reset the login type to the default prompt"
+	echo "-b, --blank 			creates a blank PAM module in a .c file for user modification"
 }
 
 # Print help if no arguments given
@@ -165,6 +166,22 @@ func_reset()
 	cd "../"
 }
 
+# Creates a blank *.c file for the user to base their password module off of
+func_blank()
+{
+	# Check that the file we want to copy from exists
+	if [ ! -f "./src/.blank" ]; then
+		echo "Original copy not present in /src directory. Please retain another copy from the original package."
+	fi
+
+	# Check that the blank file doesn't exist already
+	if [ ! -f "./blankPAM.c" ]; then
+		cp "./src/.blank" "./blankPAM.c"
+	else
+		echo "Blank file is already present, please remove or reaname the file."
+	fi
+}
+
 
 # Parse arguments
 if [ $# -gt 0 ]; then
@@ -183,6 +200,9 @@ if [ $# -gt 0 ]; then
 			;;
 		-r|--reset)
 			func_reset
+			;;
+		-b|--blank)
+			func_blank
 			;;
 	esac
 fi
