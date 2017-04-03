@@ -31,3 +31,7 @@
 # Debug files
 *.dSYM/
 *.su
+
+#login files
+.login_module
+.~login
