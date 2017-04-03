@@ -5,28 +5,39 @@ Matt Mayer (100969802)
 Kyle Causton (100947775)
 Edward Ye (100972832)
 
-## Building:
 
-This will add custom_login.so to /lib/security/
+# GENERAL INSTRUCTIONS
 
-~~~~
-make
+To make and install any of the logins we've provided, run the login_config.sh
+script, with the login type you desire.
 
-sudo make install
+eg: #> ./login_config.sh -i custom_login
+ OR
+    #> ./login_config.sh -i mouse_gesture_login
 
-~~~~
+
+To remove the custom login and replace it with the default login behaviour:
+    #> ./login_config.sh -r
+
+
+To add your own version:
+    #> ./login_config.sh -a /PATH/TO/YOUR_C_FILE_HERE.c
+    #> 
+    #> ./login_config.sh -i YOUR_C_FILE_HERE.c
+       OR
+    #> ./login_config.sh -i YOUR_C_FILE_HERE
+
+
+
 
 ## Testing it out
-
 
 ### Custom Login instructions:
 
 Put this at the top of /etc/pam.d/su
 
 ~~~~
-auth		sufficient	custom_login.so
-account		sufficient	custom_login.so
-session		sufficient	custom_login.so
+./login_config.sh -i custom_login
 ~~~~
 
 Type:
@@ -42,7 +53,7 @@ Hit ENTER.
 ### Mouse gesture login instructions:
 
 ~~~
-auth		sufficient	mouse_gesture_login.so
+./login_config.sh -i mouse_gesture_login
 ~~~
 
 The password is UP, LEFT, DOWN, RIGHT.
