@@ -1,0 +1,99 @@
+/* Blank PAM Module */
+
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/input.h>
+#include <poll.h>
+#include <pwd.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <security/pam_modules.h>
+
+
+/*
+  Called when the system needs to authenticate a user. This will be the "login"
+  method that is called.
+*/
+PAM_EXTERN int
+pam_sm_authenticate(pam_handle_t *pamh, int flags,
+                    int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
+
+/*
+  Called when the system needs to set credentials for a specific user.
+*/
+PAM_EXTERN int
+pam_sm_setcred(pam_handle_t *pamh, int flags,
+               int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
+
+/*
+  Called when the system needs to create or remove an account.
+*/
+PAM_EXTERN int
+pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
+                 int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
+
+/*
+  Called when the system needs to open a new session (a new shell, new login, etc)
+*/
+PAM_EXTERN int
+pam_sm_open_session(pam_handle_t *pamh, int flags,
+                    int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
+
+/*
+  Called when the session is finished.
+*/
+PAM_EXTERN int
+pam_sm_close_session(pam_handle_t *pamh, int flags,
+                     int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
+
+/*
+  Changes the authentication token associated with a particular user.
+*/
+PAM_EXTERN int
+pam_sm_chauthtok(pam_handle_t *pamh, int flags,
+                 int argc, const char *argv[])
+{
+  (void)pamh;
+  (void)flags;
+  (void)argc;
+  (void)argv;
+  return (PAM_SUCCESS);
+}
