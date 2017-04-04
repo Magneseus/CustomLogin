@@ -12,6 +12,7 @@
 #include <pwd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -175,28 +176,34 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
         int threshold = 50;
         input[mousePresses] = 0;
 
-        // left click means only check x change
-        if(left){
-          if(mouseChange[mousePresses][0] >= threshold){ // moved right 10 or more
-            input[mousePresses] |= 8;
-          } else if(mouseChange[mousePresses][0] <= -threshold){
-            input[mousePresses] |= 2;
-          }
-        } else if(right){ // right click means only check y axis change
-          if(mouseChange[mousePresses][1] >= threshold){ // moved up 10 or more
-            input[mousePresses] |= 1;
-          } else if(mouseChange[mousePresses][1] <= -threshold){
-            input[mousePresses] |= 4;
+        int dX = mouseChange[mousePresses][0], dY = mouseChange[mousePresses][1];
+        int absX = abs(dX), absY = abs(dY);
+        if( absX >= threshold || absY >= threshold){
+          if(absX > absY){
+            if(0 < dX){ // move right
+              input[mousePresses] |= 8;
+            } else{ // move left
+              input[mousePresses] |= 2;
+            }
+          } else{
+            if(0 < dY){ // up
+              input[mousePresses] |= 1;
+            } else{ // down
+              input[mousePresses] |= 4;
+            }
           }
         }
 
-        if(mousePresses>= 0){
+        // debug messages
+        if(mousePresses >= 0){
           printf("i=%d, x=%d, y=%d, mouse:%d\n", mousePresses, mouseChange[mousePresses][0], mouseChange[mousePresses][1], data[0] & 3);
         }
 
         mousePresses++;
+
+        // initialize the next input's relative change
         if(mousePresses < MAX_INPUTS)
-          mouseChange[mousePresses][0] = mouseChange[mousePresses][1] = 0; // initialize relative change
+          mouseChange[mousePresses][0] = mouseChange[mousePresses][1] = 0; 
         }
     }
 
