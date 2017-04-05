@@ -40,11 +40,15 @@ func_add()
 	
 	# Make src directory if it doesn't already exist
 	if [ ! -d "./src" ]; then
+		printf "Making the src/ dir..."
 		mkdir "src"
+		printf "done.\n"
 	fi
 	
+	printf "Copying your file ($2) to the src directory..."
 	# Copy the file to our ./src directory
 	cp "$2" "./src/$2"
+	printf "done.\n"
 }
 
 # Makes the file and installs it to the /lib/security directory
@@ -62,7 +66,9 @@ func_install()
 	
 	# Make bin directory if it doesn't already exist
 	if [ ! -d "./bin" ]; then
+		printf "Making the bin/ dir..."
 		mkdir "bin"
+		printf "done.\n"
 	fi
 	
 	# Get the current login module
@@ -72,23 +78,35 @@ func_install()
 	
 	# If the curModule exists, then remove the module and the reset the config
 	if [ ! -z "$curModule"]; then
+		printf "Uninstalling previous module: %s ..." "$curModule"
 		func_reset
+		printf "done.\n"
 	fi
 	
 	# Change to the src directory
 	cd "src"
 	
+	printf "Compiling the %s module..." "$MODULE"
+	
 	# Make the file
-	make targetModule="$MODULE"
+	make -s targetModule="$MODULE"
 	
 	# Install the file
-	make install targetModule="$MODULE"
+	make -s install targetModule="$MODULE"
+	
+	printf "done.\n"
+	printf "Copying %s.so to the /lib/security directory..." "$MODULE"
 	
 	# Copy the binary to the bin directory
 	cp "$MODULE.so" "../bin/$MODULE.so"
 	
+	printf "done.\n"
+	printf "Cleaning the bin/ directory..."
+	
 	# Clean the source directory
-	make clean
+	make -s clean
+	
+	printf "done.\n"
 	
 	# Change back to original directory
 	cd "../"
@@ -111,7 +129,7 @@ func_set()
 	
 	# Check that the module has been built
 	if [ ! -f "/lib/security/$MODULE.so" ]; then
-		echo "Your module has not been installed correctly."
+		echo "Your module has not been installed correctly. Please try --install again."
 		exit 0
 	fi
 	
@@ -121,14 +139,20 @@ func_set()
 	# If we haven't backed up the login config already, then do so
 	if [ ! -f "./.~login" ]; then
 		# Backup the current login config
+		printf "Backing up your current default PAM config (%s) ..." "$LOGIN_TYPE"
 		cp "/etc/pam.d/$LOGIN_TYPE" "./.~login"
+		printf "done.\n"
 	else
 		# If we have already backed up the config then revert it
 		cp "./.~login" "/etc/pam.d/$LOGIN_TYPE"
 	fi
 	
+	printf "Modifying the PAM config (%s) ..." "$LOGIN_TYPE"
+	
 	# Add the required line to the beginning of the login config file
 	echo -e "auth		sufficient	$MODULE.so\naccount		sufficient	$MODULE.so\nsession		sufficient	$MODULE.so" | cat - "/etc/pam.d/$LOGIN_TYPE" > temp && mv temp "/etc/pam.d/$LOGIN_TYPE"
+	
+	printf "done.\n"
 	
 }
 
@@ -143,6 +167,8 @@ func_reset()
 	
 	# Get the current module
 	curModule=$(<./.login_module)
+	
+	printf "Restoring your default PAM config (%s) ..." "$LOGIN_TYPE"
 	
 	# Delete the login module file
 	rm "./.login_module"
@@ -159,8 +185,13 @@ func_reset()
 	# Change to the src directory
 	cd "./src"
 	
+	printf "done.\n"
+	printf "Uninstalling the %s module..." "$curModule"
+	
 	# Removes the module
-	make uninstall targetModule="$curModule"
+	make -s uninstall targetModule="$curModule"
+	
+	printf "done.\n"
 	
 	# Changes to regular directory
 	cd "../"
@@ -177,6 +208,7 @@ func_blank()
 	# Check that the blank file doesn't exist already
 	if [ ! -f "./blankPAM.c" ]; then
 		cp "./src/.blank" "./blankPAM.c"
+		printf "New blank file created: ./blankPAM.c\n"
 	else
 		echo "Blank file is already present, please remove or reaname the file."
 	fi
