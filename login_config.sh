@@ -55,6 +55,12 @@ func_add()
 # Configures the files
 func_install()
 {
+	# Check that we're being run by root
+	if [ "$EUID" -ne 0 ]; then
+		echo "Please run as root/sudo."
+		exit 0
+	fi
+	
 	# Check if we have the proper number of arguments
 	if [ $# -lt 2 ]; then
 		echo "Please enter your selected module."
@@ -118,6 +124,12 @@ func_install()
 # Sets up the proper config files
 func_set()
 {
+	# Check that we're being run by root
+	if [ "$EUID" -ne 0 ]; then
+		echo "Please run as root/sudo."
+		exit 0
+	fi
+
 	# Check if we have the proper number of arguments
 	if [ $# -lt 2 ]; then
 		echo "Please enter your selected module."
@@ -159,6 +171,12 @@ func_set()
 # Resets the login process to the default
 func_reset()
 {
+	# Check that we're being run by root
+	if [ "$EUID" -ne 0 ]; then
+		echo "Please run as root/sudo."
+		exit 0
+	fi
+	
 	# If no modules is installed, just return
 	if [ ! -f "./.login_module" ]; then
 		echo "No module installed right now."
