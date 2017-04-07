@@ -87,4 +87,44 @@ the furthest).
 6. Hit ENTER.
 
 
+### Keyboard time login instructions:
 
+~~~
+./login_config.sh -i keyboard_time_login
+~~~
+
+The password is a sequence of four 2 second delays between keypresses.
+
+#### Entering the password:
+
+1. Press any key on the keyboard (other than ENTER).
+
+2. Wait 2 or more seconds.
+
+3. Do 1
+
+4. Do 2
+
+5. Do 1
+
+6. Do 2
+
+7. Do 1
+
+8. Do 2
+
+9. ENTER.
+
+### Hangman login instructions:
+
+~~~
+./login_config.sh -i hangman_login
+~~~
+
+The possible words are: apple, banana, grape, lemon, orange. There
+are 6 wrong letter guess.
+
+#### Entering the password:
+
+Use the keyboard. Guess letters in the word. If you get 6 wrong
+guesses the login fails.
