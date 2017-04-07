@@ -6,7 +6,23 @@ Kyle Causton (100947775)
 Edward Ye (100972832)
 
 
+Please use the "login_config.sh" script to install and uninstall any login modules.
+You will need to run it as sudo in order for them to install properly. The default behaviour of
+the script is to modify the authentication scheme of "su". This is easily modified by setting 
+the variable in the "login_config.sh" file called LOGIN_TYPE to "login" instead of "su".
+
+"su" is a much easier program to test however, as you do not need to log in and out each time.
+
+
+
 # GENERAL INSTRUCTIONS
+
+Help: #> ./login_config.sh -h
+
+Blank Template: #> ./login_config.sh -b
+
+
+
 
 To make and install any of the logins we've provided, run the login_config.sh
 script, with the login type you desire.
@@ -14,15 +30,15 @@ script, with the login type you desire.
 ~~~
 eg:
 
-    #> ./login_config.sh -i custom_login
+    #> sudo ./login_config.sh -i custom_login
  OR
-    #> ./login_config.sh -i mouse_gesture_login
+    #> sudo ./login_config.sh -i mouse_gesture_login
 ~~~
 
 To remove the custom login and replace it with the default login behaviour:
 
 ~~~
-    #> ./login_config.sh -r
+    #> sudo ./login_config.sh -r
 ~~~
 
 To add your own version:
@@ -30,9 +46,9 @@ To add your own version:
 ~~~
     #> ./login_config.sh -a /PATH/TO/YOUR_C_FILE_HERE.c
     #> 
-    #> ./login_config.sh -i YOUR_C_FILE_HERE.c
+    #> sudo ./login_config.sh -i YOUR_C_FILE_HERE.c
        OR
-    #> ./login_config.sh -i YOUR_C_FILE_HERE
+    #> sudo ./login_config.sh -i YOUR_C_FILE_HERE
 ~~~
 
 
