@@ -83,7 +83,7 @@ func_install()
 	fi
 	
 	# If the curModule exists, then remove the module and the reset the config
-	if [ ! -z "$curModule"]; then
+	if [ ! -z "$curModule" ]; then
 		printf "Uninstalling previous module: %s ..." "$curModule"
 		func_reset
 		printf "done.\n"
