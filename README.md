@@ -1,9 +1,8 @@
 # Custom Login
-COMP 3000 Term Project
 
-Matt Mayer (100969802)
-Kyle Causton (100947775)
-Edward Ye (100972832)
+- Matt Mayer
+- Kyle Causton
+- Edward Ye
 
 
 Please use the "login_config.sh" script to install and uninstall any login modules.
