@@ -4,6 +4,7 @@
 - Kyle Causton
 - Edward Ye
 
+![](https://i.gyazo.com/d3bf892dfd70f34fdd7eaca10e047b02.gif)
 
 Please use the "login_config.sh" script to install and uninstall any login modules.
 You will need to run it as sudo in order for them to install properly. The default behaviour of
